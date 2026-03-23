@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreightScope — Validate Your Freight Quote</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0f172a;
+    --navy-light: #1e293b;
+    --blue: #3b82f6;
+    --blue-dark: #2563eb;
+    --blue-light: #eff6ff;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --green-dark: #15803d;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --orange: #ea580c;
+    --orange-light: #fff7ed;
+    --amber: #d97706;
+    --purple: #7c3aed;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -2px rgba(0,0,0,.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.04);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    line-height: 1.6;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+
+  .fs-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff;
+    padding: 24px 0;
+    border-bottom: 3px solid var(--blue);
+  }
+
+  .fs-header .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .fs-header .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .fs-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+  }
+
+  .fs-header .tag {
+    font-size: 11px;
+    background: rgba(59,130,246,.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+
+  .fs-header .tagline {
+    font-size: 13px;
+    opacity: .6;
+  }
+
+  /* ── Container ──────────────────────────────────────── */
+
+  .fs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px;
+  }
+
+  /* ── Hero banner ────────────────────────────────────── */
+
+  .fs-hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .fs-hero h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -.3px;
+  }
+
+  .fs-hero p {
+    font-size: 15px;
+    opacity: .7;
+    max-width: 600px;
+  }
+
+  /* ── Input panel ────────────────────────────────────── */
+
+  .fs-inputs {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+
+  .fs-inputs-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--gray-500);
+    margin-bottom: 20px;
+  }
+
+  .fs-input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+  }
+
+  @media (max-width: 900px) {
+    .fs-input-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 500px) {
+    .fs-input-grid { grid-template-columns: 1fr; }
+  }
+
+  .fs-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+
+  .fs-field input,
+  .fs-field select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  .fs-field input:focus,
+  .fs-field select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    background: #fff;
+  }
+
+  .fs-btn-validate {
+    padding: 10px 28px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    white-space: nowrap;
+  }
+
+  .fs-btn-validate:hover {
+    background: var(--blue-dark);
+    transform: translateY(-1px);
+  }
+
+  /* ── Route cards grid ───────────────────────────────── */
+
+  .fs-results { display: none; }
+  .fs-results.visible { display: block; }
+
+  .fs-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .fs-cards-grid { grid-template-columns: 1fr; }
+  }
+
+  .fs-route-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color .2s, box-shadow .2s;
+    position: relative;
+  }
+
+  .fs-route-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .fs-route-card.recommended {
+    border-color: var(--blue);
+  }
+
+  .fs-card-top {
+    padding: 20px 22px 14px;
+  }
+
+  .fs-card-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    min-height: 24px;
+  }
+
+  .fs-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .fs-badge-cost { background: var(--green-light); color: var(--green-dark); }
+  .fs-badge-time { background: var(--blue-light); color: var(--blue-dark); }
+  .fs-badge-co2 { background: #f0fdf4; color: #166534; }
+  .fs-badge-type { background: var(--gray-100); color: var(--gray-600); }
+  .fs-badge-rec { background: var(--blue); color: #fff; }
+
+  .fs-card-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 2px;
+  }
+
+  .fs-card-route {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 14px;
+  }
+
+  /* -- benchmark status -- */
+  .fs-benchmark {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .fs-benchmark .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .fs-benchmark.below { background: var(--green-light); color: var(--green-dark); }
+  .fs-benchmark.below .dot { background: var(--green); }
+  .fs-benchmark.within { background: var(--blue-light); color: var(--blue-dark); }
+  .fs-benchmark.within .dot { background: var(--blue); }
+  .fs-benchmark.above { background: var(--red-light); color: var(--red); }
+  .fs-benchmark.above .dot { background: var(--red); }
+
+  /* -- metrics rows -- */
+  .fs-card-metrics {
+    padding: 0 22px 20px;
+  }
+
+  .fs-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 13px;
+  }
+
+  .fs-metric-row:last-child { border-bottom: none; }
+
+  .fs-metric-label {
+    color: var(--gray-500);
+    font-weight: 500;
+  }
+
+  .fs-metric-value {
+    font-weight: 700;
+    color: var(--gray-800);
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    font-size: 13px;
+  }
+
+  .fs-metric-value.best-val {
+    color: var(--green);
+  }
+
+  /* -- complexity dots -- */
+  .fs-complexity {
+    display: flex;
+    gap: 4px;
+  }
+
+  .fs-complexity .cx-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gray-200);
+  }
+
+  .fs-complexity .cx-dot.filled { background: var(--orange); }
+
+  /* ── Insights section ───────────────────────────────── */
+
+  .fs-insights {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .fs-insights-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--gray-500);
+    margin-bottom: 14px;
+  }
+
+  .fs-insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.5;
+  }
+
+  .fs-insight-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-top: 1px;
+  }
+
+  .fs-insight-icon.warn { background: var(--orange-light); color: var(--orange); }
+  .fs-insight-icon.ok { background: var(--green-light); color: var(--green); }
+  .fs-insight-icon.info { background: var(--blue-light); color: var(--blue); }
+
+  /* ── Recommendation Summary ──────────────────────────── */
+
+  .fs-summary {
+    background: linear-gradient(135deg, #f8faff 0%, #f0f7ff 100%);
+    border: 1.5px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .fs-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .fs-summary-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .fs-summary-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .fs-summary-subtitle {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 18px;
+    padding-left: 42px;
+  }
+
+  .fs-summary-body p {
+    font-size: 14px;
+    color: var(--gray-700);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .fs-summary-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .fs-summary-body strong {
+    color: var(--navy);
+  }
+
+  .fs-summary-body .fs-highlight {
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  .fs-summary-body .fs-highlight-green {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .fs-summary-body .fs-highlight-warn {
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  /* ── Actions section ──────────────────────────────────── */
+
+  .fs-actions {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .fs-actions-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+
+  .fs-actions-subtitle {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
+  }
+
+  .fs-action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.6;
+  }
+
+  .fs-action-item:last-child {
+    border-bottom: none;
+  }
+
+  .fs-action-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--purple);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .fs-action-item strong {
+    color: var(--gray-800);
+    font-weight: 700;
+  }
+
+  .fs-action-item .fs-accent {
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  /* ── Time clarity label ─────────────────────────────── */
+
+  .fs-time-note {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-weight: 400;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-top: 2px;
+  }
+
+  /* ── Disclaimer ─────────────────────────────────────── */
+
+  .fs-disclaimer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray-400);
+    padding: 16px 0;
+    border-top: 1px solid var(--gray-200);
+    margin-top: 12px;
+  }
+
+  /* ── Legacy toggle ──────────────────────────────────── */
+
+  .legacy-toggle {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    margin-top: 40px;
+    overflow: hidden;
+  }
+
+  .legacy-toggle-header {
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    user-select: none;
+    transition: background .15s;
+  }
+
+  .legacy-toggle-header:hover { background: var(--gray-100); }
+
+  .legacy-toggle-header .arrow {
+    transition: transform .2s;
+    font-size: 12px;
+  }
+
+  .legacy-toggle-header.open .arrow { transform: rotate(180deg); }
+
+  .legacy-toggle-body {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid var(--gray-200);
+    background: #fff;
+  }
+
+  .legacy-toggle-body.open { display: block; }
+
+  /* ── Legacy calculator original styles ──────────────── */
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .card-body { padding: 20px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .check-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .check-item:hover { border-color: var(--blue); background: var(--blue-light); }
+  .check-item.active { border-color: var(--blue); background: var(--blue-light); }
+  .check-item input[type="checkbox"] { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
+  .check-item span { font-size: 13px; font-weight: 500; }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-secondary { background: #fff; color: var(--gray-800); border: 1px solid var(--gray-200); }
+  .btn-secondary:hover { background: var(--gray-50); }
+  .btn-clear { background: transparent; color: var(--gray-600); }
+  .btn-clear:hover { color: var(--red); }
+  .btn-pdf { background: var(--navy); color: #fff; }
+  .btn-pdf:hover { background: var(--navy-light); }
+  .btn-pdf:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-goodwood { background: var(--orange); color: #fff; }
+  .btn-goodwood:hover { background: #c2410c; }
+
+  .unit-hint { font-weight: 400; color: var(--blue); }
+
+  #results-section { margin-top: 32px; display: none; }
+  #results-section.visible { display: block; }
+
+  .result-card { background: #fff; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+  .result-header { padding: 14px 20px; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: .5px; display: flex; justify-content: space-between; align-items: center; }
+  .result-header.taxes { background: var(--navy); color: #fff; }
+  .result-header.services { background: var(--navy-light); color: #fff; }
+  .result-header.bonuses { background: var(--green); color: #fff; }
+  .result-header .subtotal { font-size: 16px; font-weight: 700; }
+  .result-body { padding: 0; }
+  .line-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+  .line-item:last-child { border-bottom: none; }
+  .line-item .name { color: var(--gray-800); font-weight: 500; }
+  .line-item .id-badge { font-size: 11px; background: var(--gray-100); color: var(--gray-600); padding: 2px 8px; border-radius: 4px; margin-right: 8px; font-family: monospace; }
+  .line-item .amount { font-weight: 600; font-family: monospace; white-space: nowrap; }
+  .line-item .amount.discount { color: var(--green); }
+  .line-item .detail { font-size: 12px; color: var(--gray-600); margin-top: 2px; }
+  .line-item .original { font-size: 12px; color: var(--gray-400); text-decoration: line-through; margin-right: 8px; }
+
+  .total-bar { background: var(--navy); color: #fff; border-radius: 8px; padding: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-lg); }
+  .total-bar .label { font-size: 18px; font-weight: 600; }
+  .total-bar .value { font-size: 28px; font-weight: 700; font-family: monospace; }
+
+  .metrics-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 768px) { .metrics-bar { grid-template-columns: 1fr; } }
+  .metric-card { background: #fff; border-radius: 8px; box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .metric-card .metric-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-600); }
+  .metric-card .metric-value { font-size: 22px; font-weight: 700; color: var(--navy); font-family: monospace; }
+  .metric-card .metric-detail { font-size: 12px; color: var(--gray-400); }
+
+  .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: var(--red); padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-top: 16px; display: none; }
+  .error-msg.visible { display: block; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: 16px; color: var(--gray-400); font-size: 13px; font-style: italic; }
+  .cost-structure { background: #fff; border-radius: 8px; box-shadow: var(--shadow); padding: 20px; margin-top: 16px; }
+  .cost-structure-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-600); margin-bottom: 12px; }
+  .cost-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+  .cost-bar-row:last-child { margin-bottom: 0; }
+  .cost-bar-label { width: 100px; flex-shrink: 0; color: var(--gray-600); font-weight: 500; text-align: right; }
+  .cost-bar-track { flex: 1; height: 20px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+  .cost-bar-fill { height: 100%; border-radius: 4px; min-width: 2px; transition: width .4s ease; }
+  .cost-bar-fill.navy { background: var(--navy); }
+  .cost-bar-fill.blue { background: var(--blue); }
+  .cost-bar-fill.green { background: var(--green); }
+  .cost-bar-fill.orange { background: var(--orange); }
+  .cost-bar-fill.red { background: var(--red); }
+  .cost-bar-pct { width: 44px; flex-shrink: 0; text-align: right; font-weight: 600; font-family: monospace; font-size: 12px; color: var(--gray-800); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+
+<div class="fs-header">
+  <div class="inner">
+    <div>
+      <div class="brand">
+        <h1>FreightScope</h1>
+        <span class="tag">MVP</span>
+      </div>
+      <div class="tagline">Validate quotes. Compare routes. Ship smarter.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ MAIN DASHBOARD ═══════════════════════════ -->
+
+<div class="fs-container">
+
+  <!-- Hero -->
+  <div class="fs-hero">
+    <h2>Validate Your Freight Quote</h2>
+    <p>Enter a quote you received and compare it against estimated route scenarios. Understand if the price is fair and explore alternatives.</p>
+  </div>
+
+  <!-- Inputs -->
+  <div class="fs-inputs">
+    <div class="fs-inputs-title">Your Shipment Details</div>
+    <div class="fs-input-grid">
+      <div class="fs-field">
+        <label for="fs_origin">Origin</label>
+        <input type="text" id="fs_origin" value="Santander" readonly>
+      </div>
+      <div class="fs-field">
+        <label for="fs_destination">Destination</label>
+        <input type="text" id="fs_destination" value="Rotterdam" readonly>
+      </div>
+      <div class="fs-field">
+        <label for="fs_teu">Cargo (TEU)</label>
+        <input type="number" id="fs_teu" value="10" min="1" step="1">
+      </div>
+      <div class="fs-field">
+        <label for="fs_quote">Your Quote (&euro;)</label>
+        <input type="number" id="fs_quote" placeholder="e.g. 3200" min="0" step="1">
+      </div>
+      <div class="fs-field">
+        <label for="fs_priority">Priority</label>
+        <select id="fs_priority">
+          <option value="balanced">Balanced</option>
+          <option value="cheapest">Cheapest</option>
+          <option value="fastest">Fastest</option>
+          <option value="low_co2">Lower CO2</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <button type="button" class="fs-btn-validate" id="fs-btn-validate">Validate Quote</button>
+      <span style="font-size: 12px; color: var(--gray-400);">Compares your quote against 3 route scenarios</span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="fs-results" id="fs-results">
+    <div class="fs-summary" id="fs-summary" style="display:none;"></div>
+    <div class="fs-cards-grid" id="fs-cards-grid"></div>
+    <div class="fs-insights" id="fs-insights"></div>
+    <div class="fs-actions" id="fs-actions" style="display:none;"></div>
+  </div>
+
+  <div class="fs-disclaimer">This tool provides comparative estimates for decision-making only. Actual costs depend on carrier contracts, fuel surcharges, and market conditions.</div>
+
+  <!-- ═══════════════════════════ LEGACY CALCULATOR (hidden from product UI) ═══════════════════════════ -->
+
+  <div class="legacy-toggle" style="display:none;">
+    <div class="legacy-toggle-header" id="legacy-toggle-header">
+      <span>Advanced Port Cost Calculator (Legacy)</span>
+      <span class="arrow">&#9660;</span>
+    </div>
+    <div class="legacy-toggle-body" id="legacy-toggle-body">
+
+  <form id="calc-form" autocomplete="off">
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">Vessel</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="vessel_type">Vessel Type</label>
+            <select id="vessel_type">
+              <option value="">-- Select --</option>
+              <option value="general">General Cargo</option>
+              <option value="merchant">Merchant</option>
+              <option value="container">Container Ship</option>
+              <option value="cruise">Cruise</option>
+              <option value="cruise_home_port">Cruise (Home Port)</option>
+              <option value="ferry">Ferry</option>
+              <option value="roro_cargo">Ro-Ro Cargo</option>
+              <option value="roro_regular">Ro-Ro Regular Service</option>
+              <option value="car_carrier">Car Carrier</option>
+              <option value="alternative_fuel">Alternative Fuel</option>
+              <option value="passenger">Passenger</option>
+              <option value="fishing_height">Fishing (Height)</option>
+              <option value="fishing_coastal_home">Fishing Coastal (Home Port)</option>
+              <option value="fishing_coastal_other">Fishing Coastal (Other)</option>
+              <option value="recreational">Recreational</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="gt">Gross Tonnage (GT)</label>
+            <input type="number" id="gt" placeholder="e.g. 45000" min="0" step="1">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="length_m">Length (m)</label>
+              <input type="number" id="length_m" placeholder="e.g. 250" min="0" step="0.1">
+            </div>
+            <div class="field">
+              <label for="beam_m">Beam (m)</label>
+              <input type="number" id="beam_m" placeholder="e.g. 35" min="0" step="0.1">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Port Call</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="zone">Zone</label>
+            <select id="zone">
+              <option value="zone_i">Zone I (Berth)</option>
+              <option value="zone_ii">Zone II (Anchorage)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="berth_type">Berth Type</label>
+            <select id="berth_type">
+              <option value="costado">Costado (Alongside)</option>
+              <option value="punta">Punta (Bow/Stern-to)</option>
+              <option value="abarloados">Abarloados (Rafted)</option>
+              <option value="boyas">Boyas (Buoys)</option>
+              <option value="fondeo">Fondeo (Anchorage)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="concession_type">Concession Status</label>
+            <select id="concession_type">
+              <option value="none">No Concession</option>
+              <option value="with_water">Concession (with water access)</option>
+              <option value="without_water">Concession (without water access)</option>
+              <option value="port_concession">Port Concession</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="hours_in_port">Hours in Port (3-15)</label>
+              <input type="number" id="hours_in_port" placeholder="e.g. 12" min="3" max="15" step="1">
+            </div>
+            <div class="field">
+              <label for="operations">Operations <span class="unit-hint">(arr+dep)</span></label>
+              <input type="number" id="operations" placeholder="2" min="1" max="4" step="1" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Cargo / Passengers</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="cargo_type">Cargo Type</label>
+            <select id="cargo_type">
+              <option value="">-- None --</option>
+              <optgroup label="Containers (per TEU)">
+                <option value="container_20ft">Container 20ft (1 TEU)</option>
+                <option value="container_over_20ft">Container &gt;20ft (2 TEU)</option>
+              </optgroup>
+              <optgroup label="Vehicles (per unit)">
+                <option value="semitrailer_trailer">Semitrailer / Trailer</option>
+                <option value="rigid_vehicle_up_to_6_10m">Rigid Vehicle (&le;6.10m)</option>
+                <option value="rigid_vehicle_over_6_10m">Rigid Vehicle (&gt;6.10m)</option>
+                <option value="articulated_vehicle_up_to_16_50m">Articulated Vehicle (&le;16.50m)</option>
+                <option value="road_train">Road Train</option>
+                <option value="cargo_vehicle_up_to_2500kg">Cargo Vehicle (&le;2500kg)</option>
+                <option value="cargo_vehicle_over_2500kg">Cargo Vehicle (&gt;2500kg)</option>
+              </optgroup>
+              <optgroup label="Bulk / General Cargo (per tonne)">
+                <option value="group_1">Group 1 (low-value bulk)</option>
+                <option value="group_2">Group 2</option>
+                <option value="group_3">Group 3</option>
+                <option value="group_4">Group 4</option>
+                <option value="group_5">Group 5 (high-value)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cargo_quantity" id="cargo_quantity_label">Cargo Quantity</label>
+            <input type="number" id="cargo_quantity" placeholder="e.g. 0" min="0" step="1">
+          </div>
+          <div class="field">
+            <label for="passengers">Passengers</label>
+            <input type="number" id="passengers" placeholder="e.g. 0" min="0" step="1">
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Traffic</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="annual_calls">Annual Port Calls</label>
+            <input type="number" id="annual_calls" placeholder="e.g. 18" min="0" step="1">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-header">Optional Services</div>
+      <div class="card-body">
+        <div class="check-group">
+          <label class="check-item" id="chk-pilotage"><input type="checkbox" id="svc_pilotage" value="PILOTAGE"><span>Pilotage (Practicaje)</span></label>
+          <label class="check-item" id="chk-towage"><input type="checkbox" id="svc_towage" value="TOWAGE"><span>Towage (Remolque)</span></label>
+          <label class="check-item" id="chk-mooring"><input type="checkbox" id="svc_mooring" value="MOORING"><span>Mooring (Amarre)</span></label>
+          <label class="check-item" id="chk-marpol"><input type="checkbox" id="svc_marpol" value="MARPOL"><span>MARPOL (Waste Reception)</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" id="btn-calculate">Calculate</button>
+      <button type="button" class="btn btn-secondary" id="btn-example">Load Example Scenario</button>
+      <button type="button" class="btn btn-goodwood" id="btn-goodwood">GOODWOOD Validation</button>
+      <button type="button" class="btn btn-pdf" id="btn-pdf" disabled>Export Estimate (PDF)</button>
+      <button type="button" class="btn btn-clear" id="btn-clear">Clear Form</button>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+  </form>
+
+  <div id="results-section">
+    <div id="results-taxes" class="result-card"></div>
+    <div id="results-services" class="result-card"></div>
+    <div id="results-bonuses" class="result-card"></div>
+    <div id="results-total" class="total-bar"></div>
+    <div id="results-cost-structure"></div>
+    <div id="results-metrics" class="metrics-bar"></div>
+  </div>
+
+    </div><!-- /legacy-toggle-body -->
+  </div><!-- /legacy-toggle -->
+
+</div><!-- /fs-container -->
+
+<!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+
+<script>
+(function () {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════════
+  // ── FREIGHTSCOPE — Quote Validation Dashboard ─────────────────
+  // ══════════════════════════════════════════════════════════════
+
+  var fsRoutesData = [];
+  var CO2_PRICE = 80;
+
+  function fsCalcTime(route) {
+    var travel = route.distance_km / route.speed_kmh;
+    var waiting = (route.frequency_days * 24) / 2;
+    return travel + route.port_time_hours + waiting;
+  }
+
+  function fsCalcCO2(route, cargo) {
+    return route.distance_km * cargo * route.emission_factor;
+  }
+
+  function fsCalcCost(route, cargo, co2) {
+    var base = route.base_cost_per_teu * cargo;
+    var port = route.port_cost_per_teu * cargo;
+    var co2Cost = co2 * CO2_PRICE;
+    return base + port + co2Cost;
+  }
+
+  function fsBenchmark(quote, estimate) {
+    if (!quote || quote <= 0) return { status: 'none', label: 'Enter a quote to compare', cls: 'within' };
+    var ratio = quote / estimate;
+    if (ratio < 0.9) return { status: 'below', label: 'Quote is below expected range', cls: 'below' };
+    if (ratio > 1.15) return { status: 'above', label: 'Quote is above expected range', cls: 'above' };
+    return { status: 'within', label: 'Quote is within expected range', cls: 'within' };
+  }
+
+  function fsEur(n) {
+    if (n === undefined || n === null) return '-';
+    return '\u20AC' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function fsEur2(n) {
+    return '\u20AC' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fsLoadRoutes() {
+    fetch('/routes.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { fsRoutesData = data; })
+      .catch(function(e) { console.error('Failed to load routes:', e); });
+  }
+
+  function fsGetRecommended(results, priority) {
+    if (priority === 'cheapest') return results.reduce(function(best, r) { return r.cost < best.cost ? r : best; });
+    if (priority === 'fastest') return results.reduce(function(best, r) { return r.time < best.time ? r : best; });
+    if (priority === 'low_co2') return results.reduce(function(best, r) { return r.co2 < best.co2 ? r : best; });
+    // balanced: normalize and pick lowest combined score
+    var maxCost = Math.max.apply(null, results.map(function(r) { return r.cost; }));
+    var maxTime = Math.max.apply(null, results.map(function(r) { return r.time; }));
+    var maxCo2 = Math.max.apply(null, results.map(function(r) { return r.co2; }));
+    return results.reduce(function(best, r) {
+      var score = (r.cost / maxCost) + (r.time / maxTime) + (r.co2 / maxCo2);
+      var bestScore = (best.cost / maxCost) + (best.time / maxTime) + (best.co2 / maxCo2);
+      return score < bestScore ? r : best;
+    });
+  }
+
+  function fsRenderComplexity(score) {
+    var html = '<div class="fs-complexity">';
+    for (var i = 1; i <= 5; i++) {
+      html += '<div class="cx-dot' + (i <= score ? ' filled' : '') + '"></div>';
+    }
+    return html + '</div>';
+  }
+
+  function generateSummary(results, benchmarkStatus, userQuote, priority) {
+    var cheapest = results.reduce(function(b, r) { return r.cost < b.cost ? r : b; });
+    var fastest = results.reduce(function(b, r) { return r.time < b.time ? r : b; });
+    var lowestCO2 = results.reduce(function(b, r) { return r.co2 < b.co2 ? r : b; });
+    var recommended = results[0]; // fallback
+    // pick recommended based on priority
+    if (priority === 'cheapest') recommended = cheapest;
+    else if (priority === 'fastest') recommended = fastest;
+    else if (priority === 'low_co2') recommended = lowestCO2;
+    else {
+      // balanced: lowest combined normalized score
+      var maxC = Math.max.apply(null, results.map(function(r){return r.cost;}));
+      var maxT = Math.max.apply(null, results.map(function(r){return r.time;}));
+      var maxE = Math.max.apply(null, results.map(function(r){return r.co2;}));
+      recommended = results.reduce(function(b, r) {
+        return ((r.cost/maxC)+(r.time/maxT)+(r.co2/maxE)) < ((b.cost/maxC)+(b.time/maxT)+(b.co2/maxE)) ? r : b;
+      });
+    }
+
+    var paragraphs = [];
+
+    // Paragraph 1: benchmark interpretation
+    if (userQuote > 0) {
+      var qStr = '<span class="fs-highlight">\u20AC' + Math.round(userQuote).toLocaleString() + '</span>';
+      if (benchmarkStatus === 'above') {
+        paragraphs.push('Your quote (' + qStr + ') appears <span class="fs-highlight-warn">above the expected range</span> for the recommended route. There may be room to negotiate a better rate with your provider.');
+      } else if (benchmarkStatus === 'below') {
+        paragraphs.push('Your quote (' + qStr + ') appears <span class="fs-highlight-green">below the expected range</span>, which may indicate a competitive offer. Verify that all services and surcharges are included.');
+      } else {
+        paragraphs.push('Your quote (' + qStr + ') falls <span class="fs-highlight-green">within the expected range</span> for this route. The pricing appears reasonable based on current estimates.');
+      }
+    }
+
+    // Paragraph 2: priority recommendation
+    if (priority === 'cheapest') {
+      paragraphs.push('If cost is your priority, the <strong>' + cheapest.route.route_name + '</strong> option (<span class="fs-highlight">~\u20AC' + Math.round(cheapest.cost).toLocaleString() + '</span>) is the most economical choice for your shipment.');
+    } else if (priority === 'fastest') {
+      paragraphs.push('If speed is critical, the <strong>' + fastest.route.route_name + '</strong> option (<span class="fs-highlight">~' + fastest.time.toFixed(0) + 'h</span>) offers the shortest transit time available.');
+    } else if (priority === 'low_co2') {
+      paragraphs.push('If sustainability is important, the <strong>' + lowestCO2.route.route_name + '</strong> option has the lowest estimated emissions (<span class="fs-highlight-green">~' + lowestCO2.co2.toFixed(2) + 't CO2</span>).');
+    } else {
+      paragraphs.push('The <strong>' + recommended.route.route_name + '</strong> option provides a balanced trade-off between cost, time, and complexity for your shipment.');
+    }
+
+    // Paragraph 3: trade-off
+    var hasDirect = results.some(function(r) { return r.route.type === 'direct'; });
+    var hasTrans = results.some(function(r) { return r.route.type === 'transshipment'; });
+
+    if (cheapest.route.id !== fastest.route.id) {
+      if (cheapest.time > fastest.time) {
+        paragraphs.push('Lower-cost options exist, but typically involve longer transit times' + (hasTrans ? ' or transshipment' : '') + '. Faster routes are available but may increase cost' + (hasDirect ? '.' : ' or complexity.') + ' Consider which factor matters most for this shipment.');
+      }
+    } else if (hasDirect && hasTrans) {
+      paragraphs.push('Direct routes reduce complexity but may have lower frequency and longer waiting times. Transshipment routes can offer more frequent departures but carry additional handling risk.');
+    } else {
+      paragraphs.push('Review the route details below to understand the specific trade-offs between cost, transit time, and operational complexity for each option.');
+    }
+
+    return paragraphs;
+  }
+
+  function generateActions(route, benchmarkStatus, userQuote, estimatedCost, allResults) {
+    var actions = [];
+    var cheapest = allResults.reduce(function(b, r) { return r.cost < b.cost ? r : b; });
+    var fastest = allResults.reduce(function(b, r) { return r.time < b.time ? r : b; });
+
+    // 1. Benchmark-based
+    if (benchmarkStatus === 'above' && userQuote > 0) {
+      actions.push('Your quote (<strong class="fs-accent">\u20AC' + Math.round(userQuote).toLocaleString() + '</strong>) is significantly above the estimated range (<strong>~\u20AC' + Math.round(estimatedCost).toLocaleString() + '</strong>). Ask your provider to justify the price difference.');
+      actions.push('Request alternative routes or slower options to reduce cost.');
+    }
+
+    // 2. Cheaper route exists
+    if (cheapest.route.id !== route.id) {
+      actions.push('A lower-cost option (<strong class="fs-accent">~\u20AC' + Math.round(cheapest.cost).toLocaleString() + '</strong> via ' + cheapest.route.route_name + ') is available. Ask if this route can be offered.');
+    }
+
+    // 3. Faster route exists
+    if (fastest.route.id !== route.id) {
+      actions.push('A faster route (<strong class="fs-accent">\u2248' + fastest.time.toFixed(0) + 'h</strong> via ' + fastest.route.route_name + ') is available. Ask if transit time can be improved.');
+    }
+
+    // 4. Transshipment risk
+    if (route.type === 'transshipment') {
+      actions.push('This route involves <strong>transshipment</strong>. Ask about delay risks and handling times at intermediate ports.');
+    }
+
+    // 5. Direct confirmation
+    if (route.type === 'direct') {
+      actions.push('This is a <strong>direct route</strong> with lower complexity. Confirm with your provider that this service is guaranteed with no intermediate stops.');
+    }
+
+    // 6. Low frequency warning
+    if (route.frequency_days > 5) {
+      actions.push('This route has low frequency (<strong>every ' + route.frequency_days + ' days</strong>). Ask if more frequent departures are available.');
+    }
+
+    return actions.slice(0, 5);
+  }
+
+  function fsRunValidation() {
+    if (fsRoutesData.length === 0) { alert('Routes not loaded yet.'); return; }
+
+    var cargo = parseFloat(document.getElementById('fs_teu').value) || 10;
+    var quote = parseFloat(document.getElementById('fs_quote').value) || 0;
+    var priority = document.getElementById('fs_priority').value;
+
+    // Calculate all routes
+    var results = fsRoutesData.map(function(route) {
+      var time = fsCalcTime(route);
+      var co2 = fsCalcCO2(route, cargo);
+      var cost = fsCalcCost(route, cargo, co2);
+      var bench = fsBenchmark(quote, cost);
+      return { route: route, time: time, co2: co2, cost: cost, benchmark: bench };
+    });
+
+    // Find bests
+    var bestCost = results.reduce(function(b, r) { return r.cost < b.cost ? r : b; });
+    var bestTime = results.reduce(function(b, r) { return r.time < b.time ? r : b; });
+    var bestCO2 = results.reduce(function(b, r) { return r.co2 < b.co2 ? r : b; });
+    var recommended = fsGetRecommended(results, priority);
+
+    // Render recommendation summary
+    var summaryParagraphs = generateSummary(results, recommended.benchmark.status, quote, priority);
+    var summaryEl = document.getElementById('fs-summary');
+    var sumHtml = '<div class="fs-summary-header">' +
+      '<div class="fs-summary-icon">\u2713</div>' +
+      '<div class="fs-summary-title">Recommendation Summary</div>' +
+    '</div>' +
+    '<div class="fs-summary-subtitle">A quick interpretation of your freight options</div>' +
+    '<div class="fs-summary-body">';
+    summaryParagraphs.forEach(function(p) { sumHtml += '<p>' + p + '</p>'; });
+    sumHtml += '</div>';
+    summaryEl.innerHTML = sumHtml;
+    summaryEl.style.display = 'block';
+
+    // Render cards
+    var cardsHtml = '';
+    results.forEach(function(r) {
+      var badges = '';
+      var isRec = r.route.id === recommended.route.id;
+      if (isRec) badges += '<span class="fs-badge fs-badge-rec">Recommended</span>';
+      if (r.route.id === bestCost.route.id) badges += '<span class="fs-badge fs-badge-cost">Best Cost</span>';
+      if (r.route.id === bestTime.route.id) badges += '<span class="fs-badge fs-badge-time">Fastest</span>';
+      if (r.route.id === bestCO2.route.id) badges += '<span class="fs-badge fs-badge-co2">Lowest CO2</span>';
+
+      var benchHtml = '';
+      if (quote > 0) {
+        benchHtml = '<div class="fs-benchmark ' + r.benchmark.cls + '">' +
+          '<span class="dot"></span>' + r.benchmark.label +
+          '</div>';
+      }
+
+      cardsHtml += '<div class="fs-route-card' + (isRec ? ' recommended' : '') + '">' +
+        '<div class="fs-card-top">' +
+          '<div class="fs-card-badges">' + badges + '</div>' +
+          '<div class="fs-card-name">' + r.route.route_name + '</div>' +
+          '<div class="fs-card-route">' + r.route.origin + ' \u2192 ' + r.route.destination + ' &middot; ' +
+            (r.route.type === 'transshipment' ? 'Transshipment' : 'Direct') + '</div>' +
+          benchHtml +
+        '</div>' +
+        '<div class="fs-card-metrics">' +
+          '<div class="fs-metric-row">' +
+            '<span class="fs-metric-label">Est. Total Cost</span>' +
+            '<span class="fs-metric-value' + (r.route.id === bestCost.route.id ? ' best-val' : '') + '">' + fsEur(Math.round(r.cost)) + '</span>' +
+          '</div>' +
+          '<div class="fs-metric-row">' +
+            '<span class="fs-metric-label">Total Time</span>' +
+            '<span class="fs-metric-value' + (r.route.id === bestTime.route.id ? ' best-val' : '') + '">' + r.time.toFixed(1) + ' h</span>' +
+            '<div class="fs-time-note">Includes est. waiting time based on departure frequency</div>' +
+          '</div>' +
+          '<div class="fs-metric-row">' +
+            '<span class="fs-metric-label">Est. CO2</span>' +
+            '<span class="fs-metric-value' + (r.route.id === bestCO2.route.id ? ' best-val' : '') + '">' + r.co2.toFixed(2) + ' t</span>' +
+          '</div>' +
+          '<div class="fs-metric-row">' +
+            '<span class="fs-metric-label">Frequency</span>' +
+            '<span class="fs-metric-value">Every ' + r.route.frequency_days + ' d</span>' +
+          '</div>' +
+          '<div class="fs-metric-row">' +
+            '<span class="fs-metric-label">Complexity</span>' +
+            fsRenderComplexity(r.route.complexity_score) +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    document.getElementById('fs-cards-grid').innerHTML = cardsHtml;
+
+    // Insights
+    var insights = [];
+
+    if (quote > 0) {
+      var recBench = recommended.benchmark;
+      if (recBench.status === 'above') {
+        insights.push({ icon: 'warn', text: 'Your quote of ' + fsEur(Math.round(quote)) + ' appears above the estimated range for the recommended route (' + fsEur(Math.round(recommended.cost)) + '). There may be room to negotiate.' });
+      } else if (recBench.status === 'below') {
+        insights.push({ icon: 'ok', text: 'Your quote of ' + fsEur(Math.round(quote)) + ' is below the estimated cost. Verify that all services are included.' });
+      } else if (recBench.status === 'within') {
+        insights.push({ icon: 'ok', text: 'Your quote of ' + fsEur(Math.round(quote)) + ' falls within the expected range for the recommended route.' });
+      }
+    }
+
+    // Route-specific insights
+    results.forEach(function(r) {
+      if (r.route.type === 'direct' && r.route.complexity_score <= 2) {
+        insights.push({ icon: 'info', text: '"' + r.route.route_name + '" has lower complexity because it is a direct route with no transshipment.' });
+      }
+      if (r.route.id === bestTime.route.id && r.route.frequency_days <= 3) {
+        insights.push({ icon: 'info', text: '"' + r.route.route_name + '" is faster due to higher departure frequency (every ' + r.route.frequency_days + ' days).' });
+      }
+      if (r.route.id === bestCO2.route.id && r.route.id !== bestTime.route.id) {
+        insights.push({ icon: 'info', text: '"' + r.route.route_name + '" may reduce CO2 but increases total transit time.' });
+      }
+      if (r.route.complexity_score >= 4) {
+        insights.push({ icon: 'warn', text: '"' + r.route.route_name + '" involves higher complexity (score ' + r.route.complexity_score + '/5). Consider the risk of delays at transshipment ports.' });
+      }
+    });
+
+    var insightsHtml = '<div class="fs-insights-title">Insights</div>';
+    insights.forEach(function(ins) {
+      var iconSymbol = ins.icon === 'warn' ? '!' : ins.icon === 'ok' ? '\u2713' : 'i';
+      insightsHtml += '<div class="fs-insight-item">' +
+        '<div class="fs-insight-icon ' + ins.icon + '">' + iconSymbol + '</div>' +
+        '<div>' + ins.text + '</div>' +
+      '</div>';
+    });
+
+    document.getElementById('fs-insights').innerHTML = insightsHtml;
+
+    // Recommended actions
+    var recActions = generateActions(recommended.route, recommended.benchmark.status, quote, recommended.cost, results);
+    var actionsEl = document.getElementById('fs-actions');
+    var aHtml = '<div class="fs-actions-title">Recommended Actions</div>' +
+      '<div class="fs-actions-subtitle">Use these actions to better negotiate and evaluate your freight quote.</div>';
+    recActions.forEach(function(a, i) {
+      aHtml += '<div class="fs-action-item">' +
+        '<div class="fs-action-num">' + (i + 1) + '</div>' +
+        '<div>' + a + '</div>' +
+      '</div>';
+    });
+    actionsEl.innerHTML = aHtml;
+    actionsEl.style.display = 'block';
+
+    // Show
+    document.getElementById('fs-results').classList.add('visible');
+    document.getElementById('fs-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('fs-btn-validate').addEventListener('click', fsRunValidation);
+  fsLoadRoutes();
+
+  // ══════════════════════════════════════════════════════════════
+  // ── Legacy Toggle ─────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+
+  var legacyHeader = document.getElementById('legacy-toggle-header');
+  var legacyBody = document.getElementById('legacy-toggle-body');
+  legacyHeader.addEventListener('click', function () {
+    legacyHeader.classList.toggle('open');
+    legacyBody.classList.toggle('open');
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // ── LEGACY CALCULATOR (preserved, unchanged) ──────────────────
+  // ══════════════════════════════════════════════════════════════
+
+  const TAX_NAMES = {
+    T1: 'Tasa del Buque (Vessel Tax)', T2: 'Tasa del Pasaje (Passenger Tax)',
+    T3: 'Tasa de la Mercancia (Cargo Tax)', T4: 'Tasa de la Pesca Fresca (Fresh Fish Tax)',
+    T5: 'Tasa Embarcaciones Deportivas (Recreational Tax)', T6: 'Tasa Zona de Transito (Transit Zone Tax)',
+    T_AN: 'Tasa Ayudas a la Navegacion (Navigation Aids Tax)'
+  };
+
+  const SVC_NAMES = {
+    PILOTAGE: 'Pilotage (Practicaje)', TOWAGE: 'Towage (Remolque)',
+    MOORING: 'Mooring / Unmooring (Amarre y Desamarre)', MARPOL: 'MARPOL (Waste Reception)',
+    STORAGE: 'Storage (Almacenamiento)', SUPPLIES: 'Supplies (Suministros)',
+    MISC_SERVICES: 'Miscellaneous Services'
+  };
+
+  const CONTAINER_TYPES = ['container_20ft', 'container_over_20ft'];
+  const VEHICLE_TYPES = ['semitrailer_trailer','rigid_vehicle_up_to_6_10m','rigid_vehicle_over_6_10m','articulated_vehicle_up_to_16_50m','road_train','cargo_vehicle_up_to_2500kg','cargo_vehicle_over_2500kg'];
+  const GROUP_TYPES = ['group_1','group_2','group_3','group_4','group_5'];
+
+  function getCargoMeta(cargoType) {
+    if (!cargoType) return { label: 'Cargo Quantity', placeholder: 'e.g. 0', unitLabel: 'unit', unitShort: 'units' };
+    if (CONTAINER_TYPES.includes(cargoType)) return { label: 'Quantity', placeholder: 'e.g. 500', unitLabel: 'TEU', unitShort: 'TEU' };
+    if (VEHICLE_TYPES.includes(cargoType)) return { label: 'Quantity', placeholder: 'e.g. 200', unitLabel: 'vehicles', unitShort: 'vehicles' };
+    if (GROUP_TYPES.includes(cargoType)) return { label: 'Declared cargo value', placeholder: 'e.g. 1006.42', unitLabel: 'EUR', unitShort: 'EUR' };
+    return { label: 'Weight', placeholder: 'e.g. 12000', unitLabel: 'tonnes', unitShort: 'tonnes' };
+  }
+
+  const form = document.getElementById('calc-form');
+  const btnCalc = document.getElementById('btn-calculate');
+  const btnExample = document.getElementById('btn-example');
+  const btnGoodwood = document.getElementById('btn-goodwood');
+  const btnClear = document.getElementById('btn-clear');
+  const btnPdf = document.getElementById('btn-pdf');
+  const errorDiv = document.getElementById('error-msg');
+  const resultsDiv = document.getElementById('results-section');
+  const cargoSelect = document.getElementById('cargo_type');
+  const cargoQtyLabel = document.getElementById('cargo_quantity_label');
+  const cargoQtyInput = document.getElementById('cargo_quantity');
+
+  let lastResult = null;
+  let lastInput = null;
+  let _activeScenario = null;
+
+  function updateCargoLabel() {
+    const meta = getCargoMeta(cargoSelect.value);
+    cargoQtyLabel.innerHTML = meta.label + ' <span class="unit-hint">(' + meta.unitLabel + ')</span>';
+    cargoQtyInput.placeholder = meta.placeholder;
+    cargoQtyInput.step = (meta.unitLabel === 'EUR') ? '0.01' : '1';
+  }
+  cargoSelect.addEventListener('change', updateCargoLabel);
+  updateCargoLabel();
+
+  document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => { cb.closest('.check-item').classList.toggle('active', cb.checked); });
+  });
+
+  function num(id) { const v = document.getElementById(id).value; return v === '' ? undefined : Number(v); }
+  function str(id) { const v = document.getElementById(id).value; return v || undefined; }
+  function checked(id) { return document.getElementById(id).checked; }
+
+  function buildEngineInput() {
+    const vesselType = str('vessel_type'), gt = num('gt'), lengthM = num('length_m'), beamM = num('beam_m');
+    const zone = str('zone'), berthType = str('berth_type'), concessionType = str('concession_type');
+    const hoursInPort = num('hours_in_port'), operations = num('operations') || 2;
+    const cargoType = str('cargo_type'), cargoQuantity = num('cargo_quantity');
+    const passengers = num('passengers'), annualCalls = num('annual_calls');
+    const selectedServices = [];
+    if (checked('svc_pilotage')) selectedServices.push('PILOTAGE');
+    if (checked('svc_towage')) selectedServices.push('TOWAGE');
+    if (checked('svc_mooring')) selectedServices.push('MOORING');
+    if (checked('svc_marpol')) selectedServices.push('MARPOL');
+    let calculationMethod, cargoTonnes, cargoUnits, cargoDeclaredValue;
+    if (cargoType) {
+      if (cargoType.startsWith('group_')) { calculationMethod = 'groups'; cargoDeclaredValue = cargoQuantity; cargoTonnes = cargoQuantity; }
+      else { calculationMethod = 'simplified'; cargoUnits = cargoQuantity; cargoTonnes = cargoQuantity; }
+    }
+    const input = {};
+    if (vesselType) input.vessel_type = vesselType;
+    if (gt !== undefined) input.gt = gt;
+    if (lengthM !== undefined) input.length_m = lengthM;
+    if (beamM !== undefined) input.beam_m = beamM;
+    if (zone) input.zone = zone;
+    if (berthType) input.berth_type = berthType;
+    if (concessionType) input.concession_type = concessionType;
+    if (hoursInPort !== undefined) input.hours_in_port = hoursInPort;
+    if (cargoType) input.cargo_type = cargoType;
+    if (cargoTonnes !== undefined) input.cargo_tonnes = cargoTonnes;
+    if (cargoUnits !== undefined) input.cargo_units = cargoUnits;
+    if (calculationMethod) input.calculation_method = calculationMethod;
+    if (passengers !== undefined && passengers > 0) input.passengers = passengers;
+    if (annualCalls !== undefined) input.annual_calls = annualCalls;
+    input.selected_services = selectedServices;
+    input._operations = operations;
+    if (_activeScenario) input._scenario = _activeScenario;
+    if (cargoDeclaredValue !== undefined) input._cargo_declared_value = cargoDeclaredValue;
+    if (passengers) input.persons_on_board = passengers;
+    return input;
+  }
+
+  function collectFormValues() {
+    const vesselSel = document.getElementById('vessel_type'), zoneSel = document.getElementById('zone');
+    const berthSel = document.getElementById('berth_type'), concSel = document.getElementById('concession_type');
+    const cargoSel = document.getElementById('cargo_type');
+    return {
+      vessel_type_label: vesselSel.options[vesselSel.selectedIndex]?.text || '-', gt: document.getElementById('gt').value || '-',
+      length_m: document.getElementById('length_m').value || '-', beam_m: document.getElementById('beam_m').value || '-',
+      zone_label: zoneSel.options[zoneSel.selectedIndex]?.text || '-', berth_label: berthSel.options[berthSel.selectedIndex]?.text || '-',
+      concession_label: concSel.options[concSel.selectedIndex]?.text || '-', hours_in_port: document.getElementById('hours_in_port').value || '-',
+      operations: document.getElementById('operations').value || '2', cargo_type_label: cargoSel.options[cargoSel.selectedIndex]?.text || '-',
+      cargo_quantity: document.getElementById('cargo_quantity').value || '0', passengers: document.getElementById('passengers').value || '0',
+      annual_calls: document.getElementById('annual_calls').value || '-'
+    };
+  }
+
+  function eur(n) { if (n === undefined || n === null) return '-'; return n.toLocaleString('en-US', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function eurPlain(n) { if (n === undefined || n === null) return '-'; return 'EUR ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  function renderResults(data, engineInput) {
+    resultsDiv.classList.add('visible'); btnPdf.disabled = false; lastResult = data; lastInput = engineInput;
+    const taxCard = document.getElementById('results-taxes');
+    const taxEntries = Object.entries(data.taxes || {}).filter(([, v]) => v && v.amount > 0);
+    const taxSubtotal = data.summary.tax_subtotal;
+    taxCard.innerHTML = taxEntries.length > 0 ?
+      '<div class="result-header taxes"><span>Port Taxes</span><span class="subtotal">' + eur(taxSubtotal) + '</span></div><div class="result-body">' +
+      taxEntries.map(([id, val]) => { let a = eur(val.amount); if (val.original_amount && val.original_amount !== val.amount) a = '<span class="original">' + eur(val.original_amount) + '</span>' + eur(val.amount); return '<div class="line-item"><div><span class="id-badge">' + id + '</span><span class="name">' + (TAX_NAMES[id]||id) + '</span></div><div class="amount">' + a + '</div></div>'; }).join('') + '</div>' :
+      '<div class="result-header taxes"><span>Port Taxes</span><span class="subtotal">' + eur(0) + '</span></div><div class="result-body"><div class="empty-state">No taxes applicable</div></div>';
+    const svcCard = document.getElementById('results-services');
+    const svcEntries = Object.entries(data.services || {}).filter(([, v]) => v && v.amount > 0);
+    svcCard.innerHTML = svcEntries.length > 0 ?
+      '<div class="result-header services"><span>Services</span><span class="subtotal">' + eur(data.summary.service_subtotal) + '</span></div><div class="result-body">' +
+      svcEntries.map(([id, val]) => { let a = eur(val.amount); if (val.original_amount && val.original_amount !== val.amount) a = '<span class="original">' + eur(val.original_amount) + '</span>' + eur(val.amount); let d = ''; if (val.operations && val.operations > 1 && val.base_per_operation) d = '<div class="detail">' + val.operations + ' ops x ' + eur(val.base_per_operation) + '/op</div>'; return '<div class="line-item"><div><span class="id-badge">' + id + '</span><span class="name">' + (SVC_NAMES[id]||id) + '</span>' + d + '</div><div class="amount">' + a + '</div></div>'; }).join('') + '</div>' :
+      '<div class="result-header services"><span>Services</span><span class="subtotal">' + eur(0) + '</span></div><div class="result-body"><div class="empty-state">No services selected</div></div>';
+    const bonusCard = document.getElementById('results-bonuses');
+    const bonusEntries = Object.entries(data.bonuses || {}).filter(([, v]) => v && v.discount_amount > 0);
+    bonusCard.innerHTML = bonusEntries.length > 0 ?
+      '<div class="result-header bonuses"><span>Bonuses / Discounts Applied</span><span class="subtotal">-' + eur(bonusEntries.reduce((s,[,v])=>s+v.discount_amount,0)).replace('-','') + '</span></div><div class="result-body">' +
+      bonusEntries.map(([id, val]) => '<div class="line-item"><div><span class="id-badge">' + id + '</span><span class="name">' + val.applied.replace(/_/g,' ') + '</span><div class="detail">-' + val.discount_pct + '% on ' + eur(val.original_amount) + '</div></div><div class="amount discount">-' + eur(val.discount_amount).replace('-','') + '</div></div>').join('') + '</div>' :
+      '<div class="result-header bonuses"><span>Bonuses / Discounts</span><span class="subtotal">' + eur(0) + '</span></div><div class="result-body"><div class="empty-state">No bonuses applicable</div></div>';
+    document.getElementById('results-total').innerHTML = '<div class="label">Total Estimated Cost</div><div class="value">' + eur(data.total_cost) + '</div>';
+    renderCostStructure(data); renderMetrics(data, engineInput);
+  }
+
+  function renderMetrics(data, engineInput) {
+    const metricsDiv = document.getElementById('results-metrics');
+    const cargoQty = engineInput.cargo_units || engineInput.cargo_tonnes || 0;
+    const annualCalls = engineInput.annual_calls || 1;
+    const total = data.total_cost;
+    const meta = getCargoMeta(engineInput.cargo_type);
+    let costPerUnit = '-', costPerUnitLabel = 'Cost per ' + meta.unitShort;
+    if (cargoQty > 0) { costPerUnit = eur(total / cargoQty); costPerUnitLabel = 'Cost per ' + (meta.unitLabel === 'TEU' ? 'TEU' : meta.unitLabel === 'vehicles' ? 'vehicle' : meta.unitLabel === 'EUR' ? 'EUR declared' : 'tonne'); }
+    metricsDiv.innerHTML = '<div class="metric-card"><div class="metric-label">' + costPerUnitLabel + '</div><div class="metric-value">' + costPerUnit + '</div>' + (cargoQty > 0 ? '<div class="metric-detail">' + eur(total) + ' / ' + cargoQty.toLocaleString() + ' ' + meta.unitLabel + '</div>' : '<div class="metric-detail">No cargo specified</div>') + '</div><div class="metric-card"><div class="metric-label">Estimated Annual Cost</div><div class="metric-value">' + eur(total * annualCalls) + '</div><div class="metric-detail">' + eur(total) + ' x ' + annualCalls + ' calls/year</div></div>';
+  }
+
+  async function runCalculation() {
+    errorDiv.classList.remove('visible'); btnCalc.disabled = true; btnCalc.innerHTML = '<span class="spinner"></span>Calculating...';
+    try {
+      const input = buildEngineInput();
+      const resp = await fetch('/api/calculate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      renderResults(data, input);
+      resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) { errorDiv.textContent = 'Calculation error: ' + err.message; errorDiv.classList.add('visible'); }
+    finally { btnCalc.disabled = false; btnCalc.textContent = 'Calculate'; }
+  }
+
+  function renderCostStructure(data) {
+    const container = document.getElementById('results-cost-structure');
+    const total = data.total_cost;
+    if (!total || total <= 0) { container.innerHTML = ''; return; }
+    const items = []; const colorMap = { PILOTAGE:'blue', TOWAGE:'navy', MOORING:'orange', MARPOL:'green' };
+    for (const [id, val] of Object.entries(data.services || {})) { if (val && val.amount > 0) items.push({ label: SVC_NAMES[id] ? SVC_NAMES[id].split(' (')[0] : id, amount: val.amount, color: colorMap[id] || 'blue' }); }
+    const taxTotal = data.summary.tax_subtotal || 0;
+    if (taxTotal > 0) items.push({ label: 'Taxes', amount: taxTotal, color: 'red' });
+    items.sort((a, b) => b.amount - a.amount);
+    container.innerHTML = '<div class="cost-structure"><div class="cost-structure-title">Cost Structure</div>' + items.map(item => { const pct = ((item.amount / total) * 100).toFixed(1); return '<div class="cost-bar-row"><div class="cost-bar-label">' + item.label + '</div><div class="cost-bar-track"><div class="cost-bar-fill ' + item.color + '" style="width:' + pct + '%"></div></div><div class="cost-bar-pct">' + pct + '%</div></div>'; }).join('') + '</div>';
+  }
+
+  function exportPDF() {
+    if (!lastResult) return;
+    const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' }); const pageWidth = doc.internal.pageSize.getWidth(); const margin = 20; const usable = pageWidth - margin * 2; let y = 20;
+    const formVals = collectFormValues(); const data = lastResult; const meta = getCargoMeta(lastInput.cargo_type); const cargoQty = lastInput.cargo_units || lastInput.cargo_tonnes || 0; const annualCalls = lastInput.annual_calls || 1;
+    doc.setFontSize(18); doc.setFont(undefined, 'bold'); doc.setTextColor(26, 39, 68); doc.text('Port of Santander', margin, y); y += 8;
+    doc.setFontSize(14); doc.text('Port Call Estimate', margin, y); y += 8;
+    doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(108, 117, 125); doc.text('Calculated: ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), margin, y); y += 12;
+    doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(26, 39, 68); doc.text('Vessel Information', margin, y); y += 2;
+    doc.autoTable({ startY: y, margin: { left: margin, right: margin }, theme: 'plain', styles: { fontSize: 9, cellPadding: 2 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 45, textColor: [108,117,125] }, 1: { cellWidth: usable - 45 } }, body: [['Vessel Type', formVals.vessel_type_label], ['Gross Tonnage', formVals.gt + ' GT'], ['Length / Beam', formVals.length_m + ' m x ' + formVals.beam_m + ' m']] }); y = doc.lastAutoTable.finalY + 8;
+    doc.text('Port Call Parameters', margin, y); y += 2;
+    doc.autoTable({ startY: y, margin: { left: margin, right: margin }, theme: 'plain', styles: { fontSize: 9, cellPadding: 2 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 45, textColor: [108,117,125] }, 1: { cellWidth: usable - 45 } }, body: [['Zone', formVals.zone_label], ['Berth', formVals.berth_label], ['Concession', formVals.concession_label], ['Hours in Port', formVals.hours_in_port], ['Operations', formVals.operations], ['Cargo', formVals.cargo_type_label + ' \u2014 ' + Number(formVals.cargo_quantity).toLocaleString() + ' ' + meta.unitLabel], ['Passengers', formVals.passengers], ['Annual Calls', formVals.annual_calls]] }); y = doc.lastAutoTable.finalY + 10;
+    doc.text('Cost Breakdown', margin, y); y += 2;
+    const taxRows = Object.entries(data.taxes || {}).filter(([,v]) => v && v.amount > 0).map(([id, v]) => [id, TAX_NAMES[id]||id, eurPlain(v.amount)]);
+    if (taxRows.length > 0) { taxRows.push([{ content: 'Taxes Subtotal', colSpan: 2, styles: { fontStyle: 'bold' } }, { content: eurPlain(data.summary.tax_subtotal), styles: { fontStyle: 'bold' } }]); doc.autoTable({ startY: y, margin: { left: margin, right: margin }, head: [['ID','Tax','Amount']], body: taxRows, theme: 'striped', styles: { fontSize: 9, cellPadding: 3 }, headStyles: { fillColor: [26,39,68], textColor: 255 }, columnStyles: { 0: { cellWidth: 18 }, 2: { halign: 'right', cellWidth: 35 } } }); y = doc.lastAutoTable.finalY + 6; }
+    const svcRows = Object.entries(data.services || {}).filter(([,v]) => v && v.amount > 0).map(([id, v]) => [id, SVC_NAMES[id]||id, eurPlain(v.amount)]);
+    if (svcRows.length > 0) { svcRows.push([{ content: 'Services Subtotal', colSpan: 2, styles: { fontStyle: 'bold' } }, { content: eurPlain(data.summary.service_subtotal), styles: { fontStyle: 'bold' } }]); doc.autoTable({ startY: y, margin: { left: margin, right: margin }, head: [['ID','Service','Amount']], body: svcRows, theme: 'striped', styles: { fontSize: 9, cellPadding: 3 }, headStyles: { fillColor: [36,52,84], textColor: 255 }, columnStyles: { 0: { cellWidth: 18 }, 2: { halign: 'right', cellWidth: 35 } } }); y = doc.lastAutoTable.finalY + 6; }
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFillColor(26, 39, 68); doc.roundedRect(margin, y, usable, 16, 2, 2, 'F'); doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.setTextColor(255,255,255); doc.text('TOTAL ESTIMATED COST', margin + 6, y + 10.5); doc.text(eurPlain(data.total_cost), pageWidth - margin - 6, y + 10.5, { align: 'right' }); y += 24;
+    doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(108,117,125);
+    if (cargoQty > 0) { doc.text('Cost per ' + (meta.unitLabel === 'TEU' ? 'TEU' : 'tonne') + ': EUR ' + (data.total_cost / cargoQty).toFixed(2), margin, y); y += 5; }
+    doc.text('Estimated annual cost (' + annualCalls + ' calls): EUR ' + Number((data.total_cost * annualCalls).toFixed(2)).toLocaleString('en-US', { minimumFractionDigits: 2 }), margin, y); y += 12;
+    doc.setDrawColor(200,200,200); doc.line(margin, y, pageWidth - margin, y); y += 6;
+    doc.setFontSize(8); doc.setTextColor(150,150,150); doc.text('Tariffs 2024 \u2014 Port of Santander. This estimate is informational and non-binding.', margin, y);
+    doc.save('FeePort_Estimate_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  }
+
+  function loadGoodwood() {
+    document.getElementById('vessel_type').value = 'car_carrier'; document.getElementById('gt').value = '59516'; document.getElementById('length_m').value = '199'; document.getElementById('beam_m').value = '32'; document.getElementById('zone').value = 'zone_i'; document.getElementById('berth_type').value = 'costado'; document.getElementById('concession_type').value = 'none'; document.getElementById('hours_in_port').value = '12'; document.getElementById('operations').value = '2'; document.getElementById('cargo_type').value = 'group_4'; document.getElementById('cargo_quantity').value = '1006.42'; document.getElementById('passengers').value = '0'; document.getElementById('annual_calls').value = '18'; updateCargoLabel();
+    ['svc_pilotage','svc_towage','svc_mooring'].forEach(id => { const cb = document.getElementById(id); cb.checked = true; cb.closest('.check-item').classList.add('active'); });
+    const marpol = document.getElementById('svc_marpol'); marpol.checked = false; marpol.closest('.check-item').classList.remove('active');
+    _activeScenario = 'goodwood'; resultsDiv.classList.remove('visible'); errorDiv.classList.remove('visible'); btnPdf.disabled = true; lastResult = null; lastInput = null;
+  }
+
+  function loadExample() {
+    document.getElementById('vessel_type').value = 'container'; document.getElementById('gt').value = '45000'; document.getElementById('length_m').value = '250'; document.getElementById('beam_m').value = '35'; document.getElementById('zone').value = 'zone_i'; document.getElementById('berth_type').value = 'costado'; document.getElementById('concession_type').value = 'none'; document.getElementById('hours_in_port').value = '12'; document.getElementById('operations').value = '2'; document.getElementById('cargo_type').value = 'container_over_20ft'; document.getElementById('cargo_quantity').value = '12000'; document.getElementById('passengers').value = '0'; document.getElementById('annual_calls').value = '18'; updateCargoLabel();
+    ['svc_pilotage','svc_towage','svc_mooring','svc_marpol'].forEach(id => { const cb = document.getElementById(id); cb.checked = true; cb.closest('.check-item').classList.add('active'); });
+    _activeScenario = null; resultsDiv.classList.remove('visible'); errorDiv.classList.remove('visible'); btnPdf.disabled = true; lastResult = null; lastInput = null;
+  }
+
+  function clearForm() {
+    form.reset(); document.getElementById('operations').value = '2';
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('active'));
+    resultsDiv.classList.remove('visible'); errorDiv.classList.remove('visible'); btnPdf.disabled = true; lastResult = null; lastInput = null; _activeScenario = null; updateCargoLabel();
+  }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); runCalculation(); });
+  btnExample.addEventListener('click', loadExample);
+  btnGoodwood.addEventListener('click', loadGoodwood);
+  btnClear.addEventListener('click', clearForm);
+  btnPdf.addEventListener('click', exportPDF);
+
+  const formFields = form.querySelectorAll('input, select');
+  formFields.forEach(field => { field.addEventListener('input', () => { _activeScenario = null; }); field.addEventListener('change', () => { _activeScenario = null; }); });
+
+})();
+</script>
+</body>
+</html>
