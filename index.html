@@ -249,6 +249,74 @@
     font-size: 10px;
   }
 
+  .fs-scope-toggle {
+    margin-top: 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,.5);
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fs-scope-toggle:hover { color: rgba(255,255,255,.8); }
+
+  .fs-scope-detail {
+    display: none;
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,.07);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255,255,255,.7);
+  }
+
+  .fs-scope-detail.open { display: block; }
+
+  .fs-scope-detail h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: rgba(255,255,255,.9);
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  .fs-scope-detail h4:first-child { margin-top: 0; }
+
+  .fs-scope-detail ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .fs-scope-detail ul li {
+    padding: 2px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .fs-scope-detail ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .fs-scope-detail .included li::before { background: rgba(22,163,74,.7); }
+  .fs-scope-detail .excluded li::before { background: rgba(220,38,38,.5); }
+
+  .fs-scope-note {
+    margin-top: 12px;
+    font-size: 11px;
+    color: rgba(255,255,255,.4);
+    font-style: italic;
+  }
+
   /* ── Container ──────────────────────────────────────── */
 
   .fs-container {
@@ -941,10 +1009,34 @@
     <h2>Validate Your Freight Quote</h2>
     <p>Enter the quote you received from your freight forwarder and compare it against estimated costs for different route scenarios. See if the price is fair and explore alternatives.</p>
     <div class="fs-cost-includes">
-      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9875;</div> Base transport cost</div>
-      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9881;</div> Port handling fees</div>
-      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#127811;</div> CO2 emission cost (ETS)</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9875;</div> Ocean freight</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9881;</div> THC origin &amp; destination</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#127811;</div> CO2 / EU ETS cost</div>
       <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9201;</div> Transit &amp; waiting time</div>
+    </div>
+    <div class="fs-scope-toggle" id="fs-scope-toggle">&#9432; What&rsquo;s included and what&rsquo;s not?</div>
+    <div class="fs-scope-detail" id="fs-scope-detail">
+      <h4>Included in the estimate</h4>
+      <ul class="included">
+        <li><strong>Ocean freight</strong> &mdash; base carrier rate per TEU for the sea leg</li>
+        <li><strong>THC origin (Santander)</strong> &mdash; Terminal Handling Charges at the port of loading (~&euro;175/TEU)</li>
+        <li><strong>THC destination (Rotterdam)</strong> &mdash; Terminal Handling Charges at the port of discharge (~&euro;195&ndash;210/TEU)</li>
+        <li><strong>CO2 emission cost</strong> &mdash; estimated EU ETS carbon cost at &euro;80/tonne CO2</li>
+        <li><strong>Transit time</strong> &mdash; sailing time + average waiting time based on departure frequency + port time</li>
+      </ul>
+      <h4>Not included in the estimate</h4>
+      <ul class="excluded">
+        <li>Fuel surcharges (BAF &mdash; Bunker Adjustment Factor)</li>
+        <li>Currency adjustment factor (CAF)</li>
+        <li>Cargo insurance</li>
+        <li>Customs clearance &amp; documentation</li>
+        <li>Inland transport / last mile delivery</li>
+        <li>Terminal storage / demurrage / detention</li>
+        <li>ISPS security surcharge</li>
+        <li>VAT and local taxes</li>
+        <li>Carrier peak-season or emergency surcharges</li>
+      </ul>
+      <div class="fs-scope-note">Estimates are based on average market rates for illustrative purposes. Actual costs depend on carrier contracts, fuel prices, and market conditions.</div>
     </div>
   </div>
 
@@ -1206,9 +1298,10 @@
 
   function fsCalcCost(route, cargo, co2) {
     var base = route.base_cost_per_teu * cargo;
-    var port = route.port_cost_per_teu * cargo;
+    var thcOrigin = route.thc_origin_per_teu * cargo;
+    var thcDest = route.thc_destination_per_teu * cargo;
     var co2Cost = co2 * CO2_PRICE;
-    return base + port + co2Cost;
+    return base + thcOrigin + thcDest + co2Cost;
   }
 
   function fsBenchmark(quote, estimate) {
@@ -1594,6 +1687,11 @@
   });
 
   renderHistory();
+
+  // Scope info toggle
+  document.getElementById('fs-scope-toggle').addEventListener('click', function() {
+    document.getElementById('fs-scope-detail').classList.toggle('open');
+  });
 
   // ══════════════════════════════════════════════════════════════
   // ── Legacy Toggle ─────────────────────────────────────────────
