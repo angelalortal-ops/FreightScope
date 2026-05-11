@@ -94,6 +94,161 @@
     opacity: .6;
   }
 
+  .fs-header .user-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .fs-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .fs-greeting {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .fs-greeting-sub {
+    font-size: 11px;
+    opacity: .5;
+  }
+
+  /* ── Search History ─────────────────────────────────── */
+
+  .fs-history {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+
+  .fs-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .fs-history-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--gray-500);
+  }
+
+  .fs-history-toggle {
+    font-size: 12px;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  .fs-history-body {
+    display: none;
+    margin-top: 14px;
+  }
+
+  .fs-history-body.open {
+    display: block;
+  }
+
+  .fs-history-empty {
+    font-size: 13px;
+    color: var(--gray-400);
+    font-style: italic;
+    padding: 8px 0;
+  }
+
+  .fs-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .1s;
+  }
+
+  .fs-history-item:last-child { border-bottom: none; }
+
+  .fs-history-item:hover {
+    background: var(--gray-50);
+    margin: 0 -8px;
+    padding: 10px 8px;
+    border-radius: 6px;
+  }
+
+  .fs-history-item .fs-hist-route {
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+
+  .fs-history-item .fs-hist-details {
+    color: var(--gray-400);
+    font-size: 12px;
+  }
+
+  .fs-history-item .fs-hist-date {
+    color: var(--gray-400);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .fs-history-clear {
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    font-size: 11px;
+    cursor: pointer;
+    margin-top: 8px;
+    padding: 4px 0;
+  }
+
+  .fs-history-clear:hover { color: var(--red); }
+
+  /* ── Cost includes info ─────────────────────────────── */
+
+  .fs-cost-includes {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+
+  .fs-cost-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    opacity: .7;
+  }
+
+  .fs-cost-tag-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
   /* ── Container ──────────────────────────────────────── */
 
   .fs-container {
@@ -767,6 +922,13 @@
       </div>
       <div class="tagline">Validate quotes. Compare routes. Ship smarter.</div>
     </div>
+    <div class="user-area">
+      <div>
+        <div class="fs-greeting">Hola, Mar&iacute;a!</div>
+        <div class="fs-greeting-sub">Logistics Manager</div>
+      </div>
+      <div class="fs-avatar">M</div>
+    </div>
   </div>
 </div>
 
@@ -777,7 +939,24 @@
   <!-- Hero -->
   <div class="fs-hero">
     <h2>Validate Your Freight Quote</h2>
-    <p>Enter a quote you received and compare it against estimated route scenarios. Understand if the price is fair and explore alternatives.</p>
+    <p>Enter the quote you received from your freight forwarder and compare it against estimated costs for different route scenarios. See if the price is fair and explore alternatives.</p>
+    <div class="fs-cost-includes">
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9875;</div> Base transport cost</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9881;</div> Port handling fees</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#127811;</div> CO2 emission cost (ETS)</div>
+      <div class="fs-cost-tag"><div class="fs-cost-tag-icon">&#9201;</div> Transit &amp; waiting time</div>
+    </div>
+  </div>
+
+  <!-- Search History -->
+  <div class="fs-history" id="fs-history">
+    <div class="fs-history-header" id="fs-history-header">
+      <span class="fs-history-title">Search History</span>
+      <span class="fs-history-toggle" id="fs-history-toggle-label">Show</span>
+    </div>
+    <div class="fs-history-body" id="fs-history-body">
+      <div id="fs-history-list"></div>
+    </div>
   </div>
 
   <!-- Inputs -->
@@ -812,7 +991,7 @@
     </div>
     <div style="margin-top: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
       <button type="button" class="fs-btn-validate" id="fs-btn-validate">Validate Quote</button>
-      <span style="font-size: 12px; color: var(--gray-400);">Compares your quote against 3 route scenarios</span>
+      <span style="font-size: 12px; color: var(--gray-400);">Compares your quote against 5 route scenarios (transport + port fees + CO2)</span>
     </div>
   </div>
 
@@ -1323,6 +1502,9 @@
     actionsEl.innerHTML = aHtml;
     actionsEl.style.display = 'block';
 
+    // Save to history
+    saveToHistory(cargo, quote, priority, recommended);
+
     // Show
     document.getElementById('fs-results').classList.add('visible');
     document.getElementById('fs-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1330,6 +1512,88 @@
 
   document.getElementById('fs-btn-validate').addEventListener('click', fsRunValidation);
   fsLoadRoutes();
+
+  // ══════════════════════════════════════════════════════════════
+  // ── Search History (localStorage) ─────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+
+  var FS_HISTORY_KEY = 'freightscope_history';
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(FS_HISTORY_KEY)) || []; }
+    catch(e) { return []; }
+  }
+
+  function saveToHistory(cargo, quote, priority, recommended) {
+    var history = getHistory();
+    var entry = {
+      date: new Date().toISOString(),
+      cargo: cargo,
+      quote: quote,
+      priority: priority,
+      route: recommended.route.route_name,
+      cost: Math.round(recommended.cost),
+      benchmark: recommended.benchmark.status
+    };
+    history.unshift(entry);
+    if (history.length > 10) history = history.slice(0, 10);
+    localStorage.setItem(FS_HISTORY_KEY, JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    var history = getHistory();
+    var list = document.getElementById('fs-history-list');
+    if (history.length === 0) {
+      list.innerHTML = '<div class="fs-history-empty">No searches yet. Your search history will appear here.</div>';
+      return;
+    }
+    var html = '';
+    history.forEach(function(h, idx) {
+      var d = new Date(h.date);
+      var dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      var benchColor = h.benchmark === 'above' ? 'var(--red)' : h.benchmark === 'below' ? 'var(--green)' : 'var(--blue)';
+      html += '<div class="fs-history-item" data-idx="' + idx + '">' +
+        '<div>' +
+          '<div class="fs-hist-route">' + h.route + '</div>' +
+          '<div class="fs-hist-details">' + h.cargo + ' TEU &middot; Quote €' + (h.quote > 0 ? h.quote.toLocaleString() : '-') + ' &middot; ' + h.priority + ' &middot; Est. €' + h.cost.toLocaleString() + ' &middot; <span style="color:' + benchColor + '">' + h.benchmark + '</span></div>' +
+        '</div>' +
+        '<div class="fs-hist-date">' + dateStr + '</div>' +
+      '</div>';
+    });
+    html += '<button class="fs-history-clear" id="fs-history-clear">Clear history</button>';
+    list.innerHTML = html;
+    // Restore search on click
+    document.querySelectorAll('.fs-history-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var i = parseInt(el.getAttribute('data-idx'));
+        var h = getHistory()[i];
+        if (!h) return;
+        document.getElementById('fs_teu').value = h.cargo;
+        document.getElementById('fs_quote').value = h.quote || '';
+        document.getElementById('fs_priority').value = h.priority;
+      });
+    });
+    var clearBtn = document.getElementById('fs-history-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        localStorage.removeItem(FS_HISTORY_KEY);
+        renderHistory();
+      });
+    }
+  }
+
+  // History toggle
+  var histHeader = document.getElementById('fs-history-header');
+  var histBody = document.getElementById('fs-history-body');
+  var histLabel = document.getElementById('fs-history-toggle-label');
+  histHeader.addEventListener('click', function() {
+    var isOpen = histBody.classList.toggle('open');
+    histLabel.textContent = isOpen ? 'Hide' : 'Show';
+  });
+
+  renderHistory();
 
   // ══════════════════════════════════════════════════════════════
   // ── Legacy Toggle ─────────────────────────────────────────────
